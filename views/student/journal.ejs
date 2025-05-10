@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your journal</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+</head>
+
+<body>
+    <%- include('header', {user}) %>
+
+    <h2><%=subject.name%></h2>
+    <h2>Оцінки</h2>
+
+    <table class="marks-table">
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Назва уроку</th>
+                <th>Оцінка</th>
+                <th>Відвідуваність</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% marks.forEach(lessonMark => { %>
+                <% lessonMark.marks.forEach((mark, index) => { %>
+                    <tr>
+                        <% if (index === 0) { %>
+                            <td rowspan="<%= lessonMark.marks.length %>"><%= lessonMark.lesson.date %></td>
+                            <td rowspan="<%= lessonMark.marks.length %>"><%= lessonMark.lesson.name %></td>
+                        <% } %>
+                        <td><%= mark.mark !== null ? mark.mark : "-" %></td>
+                        <td><%= mark.attendance ? "✅" : "❌" %></td>
+                    </tr>
+                <% }) %>
+            <% }) %>
+        </tbody>
+    </table>
+
+
+</body>
+</html>

@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int          @id @default(autoincrement())
+  name       String       @db.VarChar(50)
+  login      String       @db.VarChar(50)
+  password   String       @db.VarChar(50)
+  role       String       @db.VarChar(50)
+  Enrollment Enrollment[]
+  Mark       Mark[]
+  Subject    Subject[]
+}
+
+model Subject {
+  id         Int          @id @default(autoincrement())
+  teacherId  Int?
+  name       String       @db.VarChar(100)
+  Enrollment Enrollment[]
+  Lesson     Lesson[]
+  User       User?        @relation(fields: [teacherId], references: [id], map: "subject_user_id_fk")
+}
+
+model Lesson {
+  id        Int      @id @default(autoincrement())
+  subjectId Int
+  name      String   @db.VarChar(100)
+  date      DateTime @db.Date
+  Subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade, map: "lesson_subject_id_fk")
+  Mark      Mark[]
+}
+
+model Mark {
+  id         Int     @id @default(autoincrement())
+  lessonId   Int
+  studentId  Int
+  mark       Int?
+  attendance Boolean @default(false)
+  Lesson     Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade, map: "mark_lesson_id_fk")
+  User       User    @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "mark_user_Id_fk")
+}
+
+model Enrollment {
+  subjectId Int
+  studentId Int
+  Subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade, map: "enrollment_subject_id_fk")
+  User      User    @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "enrollment_user_id_fk")
+
+  @@id([subjectId, studentId])
+}

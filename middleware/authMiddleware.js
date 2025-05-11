@@ -1,5 +1,6 @@
 const authService = require("../services/authService");
 const createError = require('http-errors');
+const jwt = require("jsonwebtoken");
 
 exports.checkRole = (role) => {
     return (req, res, next) => {
@@ -24,4 +25,25 @@ exports.getUserInfo = async (req, res, next) => {
     catch (err) {
         return next(err);
     }
+}
+
+exports.getUserInfoJWT = async (req, res, next) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+        return next(createError(401, "No token provided"));
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+        if (err) {
+            return next(createError(401, "Invalid token"));
+        }
+
+        try {
+            res.locals.user = await authService.getUserProfilebyId(decoded.id);
+            next();
+        }
+        catch (err) {
+            return next(err);
+        }
+    });
 }

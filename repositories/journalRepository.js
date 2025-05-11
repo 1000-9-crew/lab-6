@@ -194,7 +194,7 @@ exports.removeEnrollmentBySubjectIdAndStudentId = async (subjectId, studentId) =
             },
         });
 
-        throw new Error("Transaction failed (demo ROLLBACK)");
+        // throw new Error("Transaction failed (demo ROLLBACK)");
 
         // delete the enrollment
         await tx.enrollment.delete({

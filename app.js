@@ -5,11 +5,6 @@ const logger = require('morgan');
 const session = require('express-session');
 require("dotenv").config();
 
-var authRouter = require('./routes/authRouter');
-var teacherRouter = require('./routes/teacherRouter');
-var studentRouter = require('./routes/studentRouter');
-var homeRouter = require('./routes/homeRouter');
-
 var app = express();
 
 app.set('views', [path.join(__dirname, 'views'), path.join(__dirname, 'views/partials')]);
@@ -29,10 +24,11 @@ app.use(
   })
 )
 
-app.use("/", homeRouter);
-app.use("/auth", authRouter);
-app.use("/student", studentRouter);
-app.use("/teacher", teacherRouter);
+app.use("/api", require('./routes/api/apiRouter'));
+app.use("/", require('./routes/homeRouter'));
+app.use("/auth", require('./routes/authRouter'));
+app.use("/student", require('./routes/studentRouter'));
+app.use("/teacher", require('./routes/teacherRouter'));
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
 
 
@@ -45,6 +41,18 @@ app.use(function (err, req, res, next) {
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   res.status(err.status || 500);
+
+  if (req.originalUrl.startsWith('/api')) {
+    // Return JSON for API routes
+    return res.json({
+      error: {
+        message: err.message || "Internal Server Error",
+        ...err
+      }
+    });
+  }
+
+  // Render error page for non-API routes
   res.render('error');
 });
 

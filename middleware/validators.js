@@ -1,4 +1,6 @@
 const { body, param, validationResult, matchedData } = require("express-validator");
+const createError = require("http-errors");
+const { query } = require("../node_modules/express-validator/lib/index");
 
 const validateLogin = [
     body("login")
@@ -76,7 +78,7 @@ const formValidators = {
         .default(null),
 
     attendance: body("attendance")
-        .customSanitizer(value => value === "on" ? true : false),
+        .customSanitizer(value => value === "on" || value === "true" || value === true ? true : false),
         //.toBoolean(),
 };
 
@@ -105,6 +107,16 @@ const validateEnrollment = [
     validateId("subjectId"),
 ];
 
+const validateEnrollStudent = [
+    validateId("studentId"),
+]
+
+const validateStudentStatus = [
+    query("status")
+        .optional()
+        .isIn(['enrolled', 'unenrolled']).withMessage('Status must be either "enrolled" or "unenrolled"'),
+];
+
 
 const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
@@ -116,9 +128,33 @@ const handleValidationErrors = (req, res, next) => {
 
     const errorMessages = errors.array().map(err => err.msg); // Extract error messages
 
+    if (req.originalUrl.startsWith('/api')) {
+        // Return JSON for API routes
+        return res.status(400).json({
+            error: {
+                message: "Validation Error",
+                details: errorMessages
+            }
+        });
+    }
+
+    // Render error page for non-API routes
     return res.status(400).render('error', {
         message: "Validation Error",
         error: { stack: errorMessages.join("\n") }
+    });
+};
+
+const registerParamHandlers = (router, params) => {
+    params.forEach(param => {
+        router.param(param, (req, res, next, value) => {
+            const parsedValue = parseInt(value, 10);
+            if (isNaN(parsedValue)) {
+                return next(createError(400, `Invalid ${param}. It must be an integer.`));
+            }
+            req.params[param] = parsedValue;
+            next();
+        });
     });
 };
 
@@ -130,5 +166,8 @@ module.exports = {
     validateCreateMark,
     validateEditMark,
     validateEnrollment,
+    validateEnrollStudent,
+    validateStudentStatus,
     handleValidationErrors,
+    registerParamHandlers
 };

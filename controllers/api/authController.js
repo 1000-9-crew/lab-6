@@ -33,9 +33,7 @@ exports.register = async (req, res, next) => {
     try {
         await authService.register(new UserCreateDTO(name, login, password, role));
 
-        res.status(201).json({
-            message: "User created successfully"
-        });
+        res.status(204).send();
     }
     catch (err) {
         next(err);

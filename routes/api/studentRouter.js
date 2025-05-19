@@ -4,6 +4,7 @@ const { checkRole, getUserInfoJWT } = require("../../middleware/authMiddleware")
 const studentController = require("../../controllers/api/studentController");
 const createError = require('http-errors');
 const { registerParamHandlers } = require("../../middleware/validators");
+const { validatePagePagination, handleValidationErrors } = require("../../middleware/validators");
 
 router.use(getUserInfoJWT);
 router.use(checkRole("student"));
@@ -15,7 +16,7 @@ registerParamHandlers(router, ['subject_id']);
 router.get("/subjects", studentController.getSubjects);
 
 // Marks
-router.get("/subjects/:subject_id/marks", studentController.getSubjectMarks);
+router.get("/subjects/:subject_id/marks", validatePagePagination, handleValidationErrors, studentController.getSubjectMarks);
 
 
 module.exports = router;

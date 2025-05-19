@@ -1,4 +1,5 @@
 const studentService = require("../../services/studentService");
+const PagePagination = require("../../model/PagePagination");
 
 exports.getSubjects = async (req, res, next) => {
     try {
@@ -13,9 +14,11 @@ exports.getSubjects = async (req, res, next) => {
 
 exports.getSubjectMarks = async (req, res, next) => {
     const { subject_id } = req.params;
+    const { page, pageSize } = req.matchedData;
+    const { onlyWithMarks } = req.query;
 
     try {
-        const journal = await studentService.getSubjectJournal(res.locals.user.id, subject_id);
+        const journal = await studentService.getSubjectJournal(res.locals.user.id, subject_id, new PagePagination(page, pageSize), onlyWithMarks);
 
         res.json({
             subject: journal.subject,

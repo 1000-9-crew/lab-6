@@ -117,6 +117,20 @@ const validateStudentStatus = [
         .isIn(['enrolled', 'unenrolled']).withMessage('Status must be either "enrolled" or "unenrolled"'),
 ];
 
+const validatePagePagination = [
+    query("page")
+        //.optional()
+        .default(1)
+        .isInt({ min: 1 }).withMessage("Page must be an integer greater than 0")
+        .toInt(),
+
+    query("pageSize")
+        //.optional()
+        .default(10)
+        .isInt({ min: 1 }).withMessage("Page size must be an integer greater than 0")
+        .toInt(),
+];
+
 
 const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
@@ -168,6 +182,7 @@ module.exports = {
     validateEnrollment,
     validateEnrollStudent,
     validateStudentStatus,
+    validatePagePagination,
     handleValidationErrors,
     registerParamHandlers
 };

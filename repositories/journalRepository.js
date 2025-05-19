@@ -44,29 +44,57 @@ exports.findLessonsBySubjectId = async (subjectId) => {
     return lessons.map(Lesson.fromJson);
 };
 
-exports.findMarksByStudentIdAndSubjectId = async (studentId, subjectId) => {
+exports.findMarksByStudentIdAndSubjectId = async (studentId, subjectId, pagePagination, onlyWithMarks) => {
+    const totalCount = await prisma.lesson.count({
+        where: {
+            subjectId,
+            Mark: {
+                some: {
+                    studentId,
+                    ...(onlyWithMarks ? { mark: { not: null } } : {})
+                },
+            },
+        },
+    });
+
     const lessons = await prisma.lesson.findMany({
         where: {
             subjectId,
             Mark: {
-                some: { studentId },
+                some: {
+                    studentId,
+                    ...(onlyWithMarks ? { mark: { not: null } } : {})
+                },
             },
         },
         include: {
             Mark: {
-                where: { studentId },
+                where: {
+                    studentId,
+                    ...(onlyWithMarks ? { mark: { not: null } } : {})
+                },
                 select: {
                     mark: true,
                     attendance: true,
                 },
             },
         },
+        skip: (pagePagination.page - 1) * pagePagination.pageSize,
+        take: pagePagination.pageSize,
     });
 
-    return lessons.map(lesson => new LessonMark(
-        Lesson.fromJson(lesson),
-        lesson.Mark.map(mark => new MarkDetails(mark.mark, mark.attendance))
-    ));
+    return {
+        data: lessons.map(lesson => new LessonMark(
+            Lesson.fromJson(lesson),
+            lesson.Mark.map(mark => new MarkDetails(mark.mark, mark.attendance))
+        )),
+        pagination: {
+            page: pagePagination.page,
+            pageSize: pagePagination.pageSize,
+            totalCount: totalCount,
+            totalPages: Math.ceil(totalCount / pagePagination.pageSize)
+        }
+    };
 };
 
 exports.findEnrolledStudentsBySubjectId = async (subjectId) => {
